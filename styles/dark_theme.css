@@ -1,0 +1,36 @@
+QWidget {
+    background-color: #121212; /* Тёмный фон */
+    color: #FFFFFF; /* Белый текст */
+}
+QPushButton {
+    background: rgba(45, 45, 45, 0.7);
+    border: 1px solid #444;
+    border-radius: 6px;
+    padding: 8px 15px;
+    color: #ddd;
+    font-size: 14px;
+}
+
+
+QPushButton:hover {
+    background: #575757;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+}
+
+QLineEdit, QComboBox {
+    background-color: #1E1E1E;
+    color: #FFFFFF;
+    border: 1px solid #FFFFFF;
+    border-radius: 3px;
+}
+QTableWidget {
+    background-color: #1E1E1E;
+    color: #FFFFFF;
+    gridline-color: #575757;
+}
+
+QMainWindow {
+    background: rgba(20, 20, 20, 0.9);
+    color: #eaeaea;
+    font-family: 'Roboto', sans-serif;
+}
