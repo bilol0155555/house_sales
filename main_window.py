@@ -190,7 +190,8 @@ class MainWindow(QMainWindow):
         self.refresh_properties()
 
     def export_to_excel(self):
-        file_path, _ = QFileDialog.getSaveFileName(self, "Сохранить как", "", "Excel Files (*.xlsx)")
+        file_path, _ = QFileDialog.getSaveFileName(self, "Сохранить как",
+                                                   "", "Excel Files (*.xlsx)")
         if not file_path:
             return
 
@@ -264,17 +265,21 @@ class MainWindow(QMainWindow):
         address = self.properties_table.item(selected_row, 1).text()
         price = float(self.properties_table.item(selected_row, 2).text())
 
-        new_address, ok1 = QInputDialog.getText(self, "Редактировать жилье", "Новый адрес:", text=address)
+        new_address, ok1 = QInputDialog.getText(self, "Редактировать жилье", "Новый адрес:",
+                                                text=address)
         if not ok1 or not new_address:
             return
 
-        new_price, ok2 = QInputDialog.getDouble(self, "Редактировать жилье", "Новая цена:", value=price)
+        new_price, ok2 = QInputDialog.getDouble(self, "Редактировать жилье", "Новая цена:",
+                                                value=price)
         if not ok2:
             return
 
-        image_path, _ = QFileDialog.getOpenFileName(self, "Выбрать изображение", "", "Изображения (*.png *.jpg *.jpeg)")
+        image_path, _ = QFileDialog.getOpenFileName(self, "Выбрать изображение",
+                                                    "", "Изображения (*.png *.jpg *.jpeg)")
         if not image_path:
-            image_path = self.db.conn.execute("SELECT image FROM properties WHERE id = ?", (prop_id,)).fetchone()[0]
+            image_path = self.db.conn.execute("SELECT image FROM properties WHERE id = ?",
+                                              (prop_id,)).fetchone()[0]
 
         with self.db.conn:
             self.db.conn.execute(
@@ -345,26 +350,44 @@ class MainWindow(QMainWindow):
             return
 
         cursor = self.db.conn.cursor()
-        cursor.execute(
-            "SELECT id, address, price, images FROM properties WHERE address LIKE ? OR price LIKE ?",
-            (f"%{query}%", f"%{query}%")
-        )
+
+        # Если запрос можно интерпретировать как число, ищем в столбце `price` как число
+        try:
+            numeric_query = float(query)
+            cursor.execute(
+                "SELECT id, address, price, image FROM properties WHERE address LIKE ? OR price = ?",
+                (f"%{query}%", numeric_query)
+            )
+        except ValueError:
+            # Если запрос не число, ищем только как строку
+            cursor.execute(
+                "SELECT id, address, price, image FROM properties WHERE address LIKE ? OR CAST(price AS TEXT) LIKE ?",
+                (f"%{query}%", f"%{query}%")
+            )
+
         properties = cursor.fetchall()
 
         self.properties_table.setRowCount(len(properties))
         for row, (prop_id, address, price, images) in enumerate(properties):
             self.properties_table.setItem(row, 0, QTableWidgetItem(str(prop_id)))
             self.properties_table.setItem(row, 1, QTableWidgetItem(address))
-            self.properties_table.setItem(row, 2, QTableWidgetItem(f"{price:.2f}"))
+
+            # Форматирование цены с обработкой возможных ошибок
+            try:
+                formatted_price = f"{float(price):,.2f}"  # Преобразуем в число и форматируем
+            except ValueError:
+                formatted_price = str(price)  # Если не число, оставляем как есть
+
+            self.properties_table.setItem(row, 2, QTableWidgetItem(formatted_price))
 
             if images:
                 label = QLabel()
                 pixmap = QPixmap(images.split(";")[0]).scaled(120, 80, Qt.AspectRatioMode.KeepAspectRatio)
                 label.setPixmap(pixmap)
                 label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-                self.properties_table.setCellWidget(row, 3, label)
+                self.properties_table.setCellWidget(row, 7, label)
             else:
-                self.properties_table.setItem(row, 3, QTableWidgetItem("Нет изображений"))
+                self.properties_table.setItem(row, 7, QTableWidgetItem("Нет изображений"))
 
     def purchase_property(self):
         selected_items = self.properties_table.selectedItems()
@@ -397,8 +420,8 @@ class MainWindow(QMainWindow):
         try:
             with self.db.conn:
                 self.db.conn.execute(
-                    "INSERT INTO purchase_history (user_id, property_id, purchase_date) VALUES (?, ?, datetime('now'))",
-                    (self.user_id, prop_id)
+                    "INSERT INTO purchase_history (user_id, property_id, address, price, purchase_date) VALUES (?, ?, ?, ?, datetime('now'))",
+                    (self.user_id, prop_id, address, price)
                 )
                 self.db.conn.execute("DELETE FROM properties WHERE id = ?", (prop_id,))
             QMessageBox.information(self, "Успех", "Покупка успешно завершена!")
@@ -409,12 +432,13 @@ class MainWindow(QMainWindow):
     def view_purchase_history(self):
         cursor = self.db.conn.cursor()
         cursor.execute("""
-            SELECT p.id, p.address, p.price, h.purchase_date
+            SELECT h.property_id, h.address, h.price, h.purchase_date
             FROM purchase_history h
-            JOIN properties p ON h.property_id = p.id
+            -- JOIN properties p ON h.property_id = p.id
             WHERE h.user_id = ?
         """, (self.user_id,))
         history = cursor.fetchall()
+        print(history)
 
         if not history:
             QMessageBox.information(self, "История покупок", "У вас нет записей о покупках.")

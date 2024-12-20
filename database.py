@@ -50,15 +50,17 @@ class Database:
                 user_id INTEGER NOT NULL,
                 property_id INTEGER NOT NULL,
                 purchase_date TEXT NOT NULL,
-                FOREIGN KEY (user_id) REFERENCES users (id),
-                FOREIGN KEY (property_id) REFERENCES properties (id)
+                address TEXT NOT NULL,
+                price REAL NOT NULL,
+                FOREIGN KEY (user_id) REFERENCES users (id)
             )
 
             """)
 
     def authenticate_user(self, username, password):
         cursor = self.conn.cursor()
-        cursor.execute("SELECT id, role FROM users WHERE username = ? AND password = ?", (username, password))
+        cursor.execute("SELECT id, role FROM users WHERE username = ? AND password = ?",
+                       (username, password))
         return cursor.fetchone()
 
     def register_user(self, username, password, role):
@@ -74,7 +76,7 @@ class Database:
         cursor = self.conn.cursor()
         cursor.execute("""
         SELECT p.address, p.price, p.image, pr.purchase_date
-        FROM purchases pr
+        FROM purchase_history pr
         INNER JOIN properties p ON pr.property_id = p.id
         WHERE pr.user_id = ?
         """, (user_id,))

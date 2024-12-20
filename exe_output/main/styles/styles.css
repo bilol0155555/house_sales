@@ -1,0 +1,57 @@
+/* style.css */
+
+QMainWindow {
+    background: qlineargradient(
+        x1:0, y1:0, x2:1, y2:1,
+        stop:0 #2c3e50, stop:1 #4ca1af
+    );
+    color: white;
+    font-family: 'Arial', sans-serif;
+    font-size: 14px;
+}
+
+QPushButton {
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    padding: 10px 20px;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    transition: all 0.3s ease-in-out;
+}
+
+QPushButton:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+QLineEdit, QComboBox {
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    border-radius: 8px;
+    padding: 8px;
+}
+
+QTableWidget {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    border-radius: 10px;
+    font-size: 14px;
+    gridline-color: rgba(255, 255, 255, 0.1);
+}
+
+QHeaderView::section {
+    background: rgba(0, 0, 0, 0.2);
+    color: white;
+    padding: 5px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+QScrollBar:vertical {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 5px;
+    width: 10px;
+}
